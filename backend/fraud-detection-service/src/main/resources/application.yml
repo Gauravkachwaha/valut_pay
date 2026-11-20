@@ -1,0 +1,56 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: fraud-detection-service
+  config:
+    import: optional:configserver:http://config:config_pass@localhost:8888
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finpay_db
+    username: finpay_user
+    password: finpay_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: fraud-detection-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:eureka_pass@localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+fraud:
+  rules:
+    max-applications-per-day: 3
+    max-amount-threshold: 1000000
+    suspicious-hour-start: 2
+    suspicious-hour-end: 5
+    velocity-window-minutes: 60
+    max-requests-per-window: 5
